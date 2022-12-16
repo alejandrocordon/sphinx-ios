@@ -11,6 +11,7 @@ import UIKit
     func keyboardWillShow(_ notification: Notification)
     func keyboardWillHide(_ notification: Notification)
     func shouldSendMessage(text: String, type: Int, completion: @escaping (Bool) -> ())
+    func didDetectPossibleMention(mentionText:String)
     
     @objc optional func didChangeAccessoryViewHeight(heightDiff: CGFloat, updatedText: String)
     @objc optional func didTapAttachmentsButton()
@@ -42,6 +43,8 @@ class ChatAccessoryView: UIView {
     let kFieldFont = UIFont(name: "Roboto-Regular", size: UIDevice.current.isIpad ? 20.0 : 16.0)!
     
     var delegate: ChatAccessoryViewDelegate?
+    var autocompleteText:String? = nil
+    
     
     @IBOutlet var contentView: UIView!
     @IBOutlet weak var viewContainer: UIView!
@@ -280,19 +283,21 @@ class ChatAccessoryView: UIView {
         textViewDidChange(textView)
     }
     
-    func configurePlayerView(playerHelper: PodcastPlayerHelper, delegate: PodcastPlayerVCDelegate, completion: @escaping () -> ()) {
-        podcastPlayerView.configure(playerHelper: playerHelper, delegate: delegate, completion: {
-            self.podcastPlayerView.showPlayerInfo()
-            self.rebuildSize()
-            
-            self.podcastPlayerView.addShadow(location: .top, color: UIColor.black, opacity: 0.1)
-            self.viewContainer.removeShadow()
-            completion()
-        })
-    }
-    
-    func reloadPlayerView() {
-        podcastPlayerView.reload()
+    func configurePlayerViewWith(
+        podcast: PodcastFeed,
+        delegate: PodcastPlayerVCDelegate,
+        completion: @escaping () -> ()
+    ) {
+        podcastPlayerView.configureWith(
+            podcast: podcast,
+            and: delegate,
+            completion: {
+                self.rebuildSize()
+                
+                self.podcastPlayerView.addShadow(location: .top, color: UIColor.black, opacity: 0.1)
+                self.viewContainer.removeShadow()
+                completion()
+            })
     }
     
     func hideReplyView() {
